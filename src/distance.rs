@@ -1,10 +1,10 @@
 // Distance Analytics
 use geo::{ Closest, ClosestPoint, Point, Polygon };
-use geo::{ Haversine, Distance };
+use geo::{ Distance, Geodesic, Haversine };
 
 pub enum DistanceMethod {
   Haversine,
-  // Geodesic,
+  Geodesic,
 }
 
 pub fn find_closest_point(point: &Point, polygon: &Polygon) -> Point{
@@ -25,7 +25,7 @@ pub fn find_closest_point(point: &Point, polygon: &Polygon) -> Point{
 pub fn point_distance(point:&Point, to_point:&Point, method:DistanceMethod) -> f64 {
   match method {
       DistanceMethod::Haversine => return Haversine::distance(point.clone(),to_point.clone()),
-      // DistanceMethod::Geodesic => return Geodesic::distance(point.clone(), to_point.clone()), 
+      DistanceMethod::Geodesic => return Geodesic::distance(point.clone(), to_point.clone()), 
   }
 }
 
