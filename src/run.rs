@@ -13,7 +13,7 @@ pub fn rs_geo() {
     let target_crs = crs_refs::EPSG_4326;
 
     // Create a Point
-    let point = Point::new(325113.4269645748, 673695.0127932389); 
+    let point = Point::new(335113.4269645748, 683695.0127932389); 
 
     // Create a poly
     let polygon:Polygon<f64> = polygon![
@@ -23,34 +23,38 @@ pub fn rs_geo() {
         (x: 325113.5269645548, y: 673695.0227932289),
     ];
 
-    // Closest point
-    let closest:Point<f64> = find_closest_point(&point, &polygon);
+    // Transform
+    let point_tf = update_point_crs(point, &active_crs, &target_crs);
+    let poly_tf = update_poly_crs(&polygon, &active_crs, &target_crs);
+    
 
-    // Distance
-    let distance = point_distance(
-        &point, 
+    // Closest point
+    let closest:Point<f64> = find_closest_point(&point_tf, &poly_tf);
+
+    // Distance - methods require lat / long - must use EPSG_4326 vals
+    let dist_h = point_distance(
+        &point_tf, 
         &closest, 
         DistanceMethod::Haversine,
     );
 
-    // Transform
-    let point_tf = update_point_crs(point, &active_crs, &target_crs);
-    let poly_tf = update_poly_crs(&polygon, &active_crs, &target_crs);
+    let dist_g = point_distance(
+        &point_tf, 
+        &closest, 
+        DistanceMethod::Geodesic,
+    );
 
-    println!("Original : {:?}", point);
+
     println!("Transformed : {:?}", point_tf);
-    println!();
-
-    println!("Original : {:?}", polygon);
-    println!();
-
     println!("Transformed : {:?}", poly_tf);
     println!();
     
-    println!("Closest : {:?}", closest);
+    println!("Closest Points : \n- {:?} \n- {:?}", point_tf, closest);
     println!();
-
-    println!("Haversine distance (m) : {:?}", distance.round());
-    println!()
+    
+    println!("Haversine distance (km) : {:?}", (dist_h / 1000.0));
+    println!("Geodesic distance (km) : {:?}", (dist_g / 1000.0));
+    println!("Variance (%) : {:?}", 100.0 * ((dist_g - dist_h) / dist_g) );
+    println!();
     
 }
