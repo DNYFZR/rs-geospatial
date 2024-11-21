@@ -1,5 +1,5 @@
 // Distance Analytics
-use geo::{ Closest, ClosestPoint, Point, Polygon };
+use geo::{ Closest, ClosestPoint, Coord, Point, Polygon };
 use geo::{ Distance, Geodesic, Haversine };
 
 pub enum DistanceMethod {
@@ -22,11 +22,33 @@ pub fn find_closest_point(point: &Point, polygon: &Polygon) -> Point{
   };
 }
 
-pub fn point_distance(point:&Point, to_point:&Point, method:DistanceMethod) -> f64 {
+pub fn point_distance(point:&Point, to_point:&Point, method:&DistanceMethod) -> f64 {
   match method {
-      DistanceMethod::Haversine => return Haversine::distance(point.clone(),to_point.clone()),
-      DistanceMethod::Geodesic => return Geodesic::distance(point.clone(), to_point.clone()), 
+      &DistanceMethod::Haversine => return Haversine::distance(point.clone(),to_point.clone()),
+      &DistanceMethod::Geodesic => return Geodesic::distance(point.clone(), to_point.clone()), 
   }
+}
+
+pub fn polygon_distance(polygon: &Polygon, to_polygon:&Polygon, method:&DistanceMethod) -> f64 {
+    // get list of to_polygon points
+    let poly_vec: Vec<Coord> = to_polygon.exterior().0.clone();
+    let mut dist_map: Vec<(Point, Point, f64)> = vec![];
+
+    for point in poly_vec {
+      let closest = find_closest_point(&Point(point), &polygon);
+      let dist = point_distance(&Point(point), &closest, method);
+
+      dist_map.push((Point(point), closest, dist));
+    }
+
+    let mut closest = dist_map[0];
+    for set in dist_map {
+      if set.2 > closest.2 {
+        closest = set;
+      }
+    }
+
+    return closest.2;
 }
 
 #[test]
@@ -53,10 +75,52 @@ fn test_point_distance() {
   let new_york_city:Point<f64> = Point::new(-74.006f64, 40.7128f64);
   let edinburgh: Point<f64> = Point::new(-3.2007650172960296, 55.95042325369335);
   
-  let distance = point_distance(&new_york_city, &edinburgh, DistanceMethod::Haversine);
+  let distance = point_distance(&new_york_city, &edinburgh, &DistanceMethod::Haversine);
   
   assert_eq!(
       5_243_773.0, // meters
       distance.round()
   );
+}
+
+#[test]
+fn test_polygon_distance() {
+  use geo::polygon;
+  use crate::crs::update_poly_crs;
+  use crs_definitions as crs_refs;
+
+    // CRS setup
+    let active_crs = crs_refs::EPSG_27700;
+    let target_crs = crs_refs::EPSG_4326;
+
+    // Create polygons
+    let polygon:Polygon<f64> = polygon![
+        (x: 225113.5269645548, y: 673695.0227932289),
+        (x: 325113.5269645948, y: 673695.0227932489),
+        (x: 325113.5269646148, y: 673695.0227932689),
+    ];
+
+    let polygon_alt:Polygon<f64> = polygon![
+        (x: 335113.5269645548, y: 773695.0227932289),
+        (x: 335113.5269645948, y: 773695.0227932489),
+        (x: 335113.5269646148, y: 773695.0227932689),
+    ];
+
+    // Transform
+    let poly_tf = update_poly_crs(&polygon, &active_crs, &target_crs);
+    let poly_alt_tf = update_poly_crs(&polygon_alt, &active_crs, &target_crs);
+
+    // Poly to poly dist 
+    let poly_dist_h = polygon_distance(&poly_tf, &poly_alt_tf, &DistanceMethod::Haversine);
+    let poly_dist_g = polygon_distance(&poly_tf, &poly_alt_tf, &DistanceMethod::Geodesic);
+    let poly_dist_var = 100.0 * ((poly_dist_g - poly_dist_h) / poly_dist_g);
+
+    // Test distances (km)
+    let test_dist_h = 100.38946826751382;
+    let test_dist_g = 100.52992635399895;
+    let test_var = 0.139717685647686;
+
+    assert_eq!(poly_dist_g / 1000.0, test_dist_g);
+    assert_eq!(poly_dist_h  / 1000.0, test_dist_h);
+    assert_eq!(poly_dist_var, test_var);
 }
