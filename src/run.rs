@@ -2,6 +2,7 @@
 
 use crate::crs::{ update_point_crs, update_poly_crs };
 use crate::distance::{ DistanceMethod, find_closest_point, point_distance, polygon_distance };
+use crate::zipfile::unzip;
 
 use crs_definitions as crs_refs;
 use geo::{ polygon, Point, Polygon };
@@ -72,5 +73,9 @@ pub fn rs_geo() {
     println!("Geodesic distance (km) : {:?}", (poly_dist_g / 1000.0));
     println!("Variance (%) : {:?}", 100.0 * ((poly_dist_g - poly_dist_h) / poly_dist_g) );
     println!();
+
+
+    // Unzip file test
+    unzip("data/SEPA_BATHING_WATER_POLYGONS_BNG_gpkg.zip", "data");
 
 }
