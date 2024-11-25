@@ -1,8 +1,4 @@
 // Geospatial Modelling
-
-// mod crs;
-// mod distance;
-
 mod geofiles;
 
 mod geospace;
