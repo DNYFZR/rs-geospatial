@@ -38,10 +38,24 @@ pub fn unzip(src:&str, dest:&str) {
 
 #[test]
 fn test_unzip() {
-  // remove bw extract from data dir
+  use tempfile::TempDir;
 
+  let src = "data/SEPA_BATHING_WATER_POLYGONS_BNG_gpkg.zip";
+  
+  let binding = TempDir::new().expect("Upstream error : tempfile crate failed to create test dir");
+  let dest = binding.path().to_str().expect("failed to extract tmp test path");
+  let dest_file = format!("{}/SEPA_BATHING_WATER_POLYGONS_BNG.gpkg", &dest);
+  
+  // remove extract from data dir if exists already
+  match fs::exists(&dest_file) {
+    Ok(true) => fs::remove_file(&dest_file).expect("Error removing test file"),
+    Ok(false) => (),
+    Err(_) => (),
+  }
   // run extract on bw zip
+  unzip(src, dest);
 
-  // confirm file now exists (again)
-  assert_eq!("", "");
+  // confirm file now exists
+  let result = fs::exists(dest_file).expect("Error checking if filepath exists");
+  assert_eq!(true, result);
 }
