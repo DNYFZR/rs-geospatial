@@ -1,9 +1,11 @@
 // Geospatial Modelling
-mod crs;
 
-mod distance;
+// mod crs;
+// mod distance;
 
-mod zipfile;
+mod geofiles;
+
+mod geospace;
 
 mod run;
 use run::rs_geo;
