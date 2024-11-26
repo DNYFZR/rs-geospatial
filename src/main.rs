@@ -1,7 +1,12 @@
 // Geospatial Modelling
+
 mod run;
-mod geofiles;
-mod geospace;
+
+mod spatial;
+
+mod geopackage;
+
+mod utils;
 
 fn main() {
     run::rs_geo();
