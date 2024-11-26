@@ -1,8 +1,7 @@
 // Geospatial Modelling
 
-use crate::geospace;
-use crate::geofiles::unzip;
-
+use crate::spatial;
+use crate::geopackage;
 use crs_definitions as crs_refs;
 use geo::{ polygon, Point, Polygon };
 
@@ -29,30 +28,30 @@ pub fn rs_geo() {
     ];
 
     // Transform
-    let point_tf = geospace::update_point_crs(point, &active_crs, &target_crs);
-    let poly_tf = geospace::update_poly_crs(&polygon, &active_crs, &target_crs);
-    let poly_alt_tf = geospace::update_poly_crs(&polygon_alt, &active_crs, &target_crs);
+    let point_tf = spatial::update_point_crs(point, &active_crs, &target_crs);
+    let poly_tf = spatial::update_poly_crs(&polygon, &active_crs, &target_crs);
+    let poly_alt_tf = spatial::update_poly_crs(&polygon_alt, &active_crs, &target_crs);
     
 
     // Closest point
-    let closest:Point<f64> = geospace::find_closest_point(&point_tf, &poly_tf);
+    let closest:Point<f64> = spatial::find_closest_point(&point_tf, &poly_tf);
 
     // Distance - methods require lat / long - must use EPSG_4326 vals
-    let dist_h = geospace::point_distance(
+    let dist_h = spatial::point_distance(
         &point_tf, 
         &closest, 
-        &geospace::DistanceMethod::Haversine,
+        &spatial::DistanceMethod::Haversine,
     );
 
-    let dist_g = geospace::point_distance(
+    let dist_g = spatial::point_distance(
         &point_tf, 
         &closest, 
-        &geospace::DistanceMethod::Geodesic,
+        &spatial::DistanceMethod::Geodesic,
     );
 
     // Poly to poly dist 
-    let poly_dist_h = geospace::polygon_distance(&poly_tf, &poly_alt_tf, &geospace::DistanceMethod::Haversine);
-    let poly_dist_g = geospace::polygon_distance(&poly_tf, &poly_alt_tf, &geospace::DistanceMethod::Geodesic);
+    let poly_dist_h = spatial::polygon_distance(&poly_tf, &poly_alt_tf, &spatial::DistanceMethod::Haversine);
+    let poly_dist_g = spatial::polygon_distance(&poly_tf, &poly_alt_tf, &spatial::DistanceMethod::Geodesic);
 
     println!("Transformed : {:?}", point_tf);
     println!("Transformed : {:?}", poly_tf);
@@ -75,6 +74,16 @@ pub fn rs_geo() {
 
 
     // Unzip file test
-    unzip("data/SEPA_BATHING_WATER_POLYGONS_BNG_gpkg.zip", "data");
+    geopackage::unzip("data/SEPA_BATHING_WATER_POLYGONS_BNG_gpkg.zip", "data");
+
+    // Extract gpkg
+    let _extract = geopackage::get(
+        "data/SEPA_BATHING_WATER_POLYGONS_BNG.gpkg", 
+        "SEPA_BATHING_WATER_POLYGONS_BNG"
+    );
+    println!("complete...");
+    // for entry in extract {
+    //     println!("{:#?}", entry);
+    // }
 
 }
