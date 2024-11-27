@@ -3,21 +3,21 @@ use crate::utils;
 use std::{ fs, io };
 use rusqlite::Connection;
 use reqwest;
-use geo::{Geometry, MultiPolygon, Point, polygon};
+use geo::{polygon, Geometry, MultiPolygon, Point};
 use geozero::wkb;
 use crs_definitions;
 
 #[derive(Debug)]
 pub struct Points {
-        pub object_id:i64,
-        pub shape:Point,
-        pub bw_id:String,
-        pub description:String,
-        pub year:i64,
-        pub current:String,
-        pub class_id:String,
-        pub class_description:String,
-        pub bw_url:String,
+    pub object_id:i64,
+    pub shape:Point,
+    pub bw_id:String,
+    pub description:String,
+    pub year:i64,
+    pub current:String,
+    pub class_id:String,
+    pub class_description:String,
+    pub bw_url:String,
 }
 
 impl Points {
@@ -108,18 +108,17 @@ impl Points {
     }
 }
 
-
 #[derive(Debug)]
 pub struct Polygons {
-        pub object_id:i64,
-        pub shape:MultiPolygon,
-        pub bw_id:String,
-        pub description:String,
-        pub year:i64,
-        pub current:String,
-        pub class_id:String,
-        pub class_description:String,
-        pub bw_url:String,
+    pub object_id:i64,
+    pub shape:MultiPolygon,
+    pub bw_id:String,
+    pub description:String,
+    pub year:i64,
+    pub current:String,
+    pub class_id:String,
+    pub class_description:String,
+    pub bw_url:String,
 }
 
 impl Polygons {
