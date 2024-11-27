@@ -1,7 +1,5 @@
 // Geospatial Modelling
-
 use crate::spatial;
-use crate::geopackage;
 use crs_definitions as crs_refs;
 use geo::{ polygon, Point, Polygon };
 
@@ -70,20 +68,5 @@ pub fn rs_geo() {
     println!("Haversine distance (km) : {:?}", (poly_dist_h / 1000.0));
     println!("Geodesic distance (km) : {:?}", (poly_dist_g / 1000.0));
     println!("Variance (%) : {:?}", 100.0 * ((poly_dist_g - poly_dist_h) / poly_dist_g) );
-    println!();
-
-
-    // Unzip file test
-    geopackage::unzip("data/SEPA_BATHING_WATER_POLYGONS_BNG_gpkg.zip", "data");
-
-    // Extract gpkg
-    let _extract = geopackage::get(
-        "data/SEPA_BATHING_WATER_POLYGONS_BNG.gpkg", 
-        "SEPA_BATHING_WATER_POLYGONS_BNG"
-    );
-    println!("complete...");
-    // for entry in extract {
-    //     println!("{:#?}", entry);
-    // }
-
+    
 }
