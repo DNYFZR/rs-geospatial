@@ -58,6 +58,11 @@ pub fn point_distance(point:&Point, to_point:&Point, method:&DistanceMethod) -> 
   }
 }
 
+pub fn point_polygon_distance(point: &Point, to_polygon:&Polygon, method:&DistanceMethod) -> f64 {
+  let to_point = find_closest_point(point, to_polygon);
+  return point_distance(point, &to_point, method);
+}
+
 pub fn polygon_distance(polygon: &Polygon, to_polygon:&Polygon, method:&DistanceMethod) -> f64 {
     // get list of to_polygon points
     let poly_vec: Vec<Coord> = to_polygon.exterior().0.clone();
