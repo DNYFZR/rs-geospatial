@@ -1,5 +1,4 @@
 // Geospatial Modelling
-
 use crs_definitions as crs_refs;
 use proj4rs::proj::Proj;
 use geo::{ Coord, MapCoords, Point, Polygon, point, Closest, ClosestPoint, };
@@ -212,5 +211,35 @@ fn test_polygon_distance() {
     assert_eq!(poly_dist_g / 1000.0, test_dist_g);
     assert_eq!(poly_dist_h  / 1000.0, test_dist_h);
     assert_eq!(poly_dist_var, test_var);
+}
+
+#[test]
+fn test_point_to_polygon_distance() {
+  use geo::polygon;
+  use crs_definitions as crs_refs;
+
+    // CRS setup
+    let active_crs = crs_refs::EPSG_27700;
+    let target_crs = crs_refs::EPSG_4326;
+
+    // Create polygons
+    let polygon:Polygon<f64> = polygon![
+        (x: 225113.5269645548, y: 673695.0227932289),
+        (x: 325113.5269645948, y: 673695.0227932489),
+        (x: 325113.5269646148, y: 673695.0227932689),
+    ];
+
+    let point:Point = point!(x: 335113.5269645548, y: 773695.0227932289);
+
+    // Transform
+    let polygon_tf = update_poly_crs(&polygon, &active_crs, &target_crs);
+    let point_tf = update_point_crs(point, &active_crs, &target_crs);
+
+    // Point to poly dist 
+    let dist = point_polygon_distance(&point_tf, &polygon_tf, &DistanceMethod::Haversine);
+
+    // Test distances (km)
+    let test_dist = 100.3894682674663;
+    assert_eq!(dist  / 1000.0, test_dist);
 }
 
