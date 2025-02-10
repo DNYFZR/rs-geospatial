@@ -2,8 +2,11 @@
 mod coord;
 mod dist;
 mod utils;
+
+// Dev
 mod points;
 mod polygons;
+mod geodb;
 
 fn main() {
    let target = "spatial";
@@ -12,6 +15,14 @@ fn main() {
       "spatial" => get_spatial(),
       _ => print!("Current functionality : 'bathing waters', 'spatial', "),
   }
+
+  // Dev
+  let point_demo = geodb::GeoDB::example_points().extract_points();
+  let polygon_demo = geodb::GeoDB::example_polygons();
+
+  println!("{:?}", point_demo);
+  println!("{:?}", polygon_demo);
+
 }
 
 use std::time::Instant;
