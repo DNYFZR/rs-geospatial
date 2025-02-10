@@ -1,11 +1,12 @@
-// Geopackage Extraction Module
-use crate::utils;
-use std::{ fs, io };
+// Geodatabase handler module
+use crate::utils::unzip;
+use std::fs::{ File, read_dir, create_dir, remove_file };
+use std::io::{ Cursor, copy };
+use reqwest::blocking::get;
 use rusqlite::Connection;
-use reqwest;
-use geo::{Geometry, Point};
-use geozero::wkb;
 use crs_definitions;
+use geo::{Geometry, Point};
+use geozero::wkb::{ FromWkb, WkbDialect };
 
 #[derive(Debug)]
 pub struct Points {
@@ -52,25 +53,25 @@ impl GeoDB {
 
     pub fn extract_points(&self) -> Vec<Points> {
         // Extract from url
-        match fs::read_dir("tmp") {
+        match read_dir("tmp") {
             Ok(_) => (),
-            Err(_) => fs::create_dir("tmp").expect("failed to create working dir"), 
+            Err(_) => create_dir("tmp").expect("failed to create working dir"), 
         }
 
         // Get archive from url
-        let mut response = reqwest::blocking::get(&self.url).expect("failed to get file from url");
+        let mut response = get(&self.url).expect("failed to get file from url");
 
         // Copy to working dir
         if self.zipfile.is_some() {
             let zip_path = format!("tmp/{}", self.zipfile.clone().unwrap());
-            let mut file = fs::File::create(&format!("{}", &zip_path))
+            let mut file = File::create(&format!("{}", &zip_path))
                     .expect("failed to create db_path");
             
-            io::copy(&mut response, &mut file)
+            copy(&mut response, &mut file)
                     .expect("failed to copy content to db_path");
 
             // Unzip archive
-            utils::unzip(&format!("{}", &zip_path), "tmp");
+            unzip(&format!("{}", &zip_path), "tmp");
         }
         
         //  Connect & query
@@ -86,10 +87,10 @@ impl GeoDB {
 
             // Extract geometry from bytes array
             let mut point: Point = Point::new(0.0, 0.0);
-            let mut bytes_cursor = io::Cursor::new(&shape_entry);
-            let geometry = wkb::FromWkb::from_wkb(
+            let mut bytes_cursor = Cursor::new(&shape_entry);
+            let geometry = FromWkb::from_wkb(
                     &mut bytes_cursor, 
-                    wkb::WkbDialect::Geopackage
+                    WkbDialect::Geopackage
             );
             
             match geometry {
@@ -113,9 +114,9 @@ impl GeoDB {
 
         // Clean up temp files
         if self.zipfile.is_some() {
-            fs::remove_file(&format!("tmp/{}", &self.zipfile.clone().unwrap())).expect("failed to remove zip archive from working dir");
+            remove_file(&format!("tmp/{}", &self.zipfile.clone().unwrap())).expect("failed to remove zip archive from working dir");
         }
-        // fs::remove_file(&format!("tmp/{}", &self.db)).expect("failed to remove DB from working dir");
+        // remove_file(&format!("tmp/{}", &self.db)).expect("failed to remove DB from working dir");
 
         return data;  
     }
