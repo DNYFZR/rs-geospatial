@@ -2,9 +2,6 @@
 mod coord;
 mod dist;
 mod utils;
-mod bathing_waters;
-
-// Dev
 mod points;
 mod polygons;
 
@@ -24,21 +21,21 @@ use geo::{ polygon, Point, Polygon };
 fn get_bw() {
     println!("Requesting bathing water polygons from SEPA GIS system...");
     let start = Instant::now();
-    let polys = bathing_waters::Polygons::get();
+    let polys = polygons::Polygons::get();
 
     let duration = start.elapsed();
 
     println!("server response & data extraction completed in : {:?}", duration);
-    println!("Dataset CRS : {:?}", bathing_waters::Polygons::CRS.code);
+    println!("Dataset CRS : {:?}", polygons::Polygons::CRS.code);
 
     println!("Requesting bathing water points from SEPA GIS system...");
     let start = Instant::now();
-    let points = bathing_waters::Points::get();
+    let points = points::Points::get();
 
     let duration = start.elapsed();
 
     println!("server response & data extraction completed in : {:?}", duration);
-    println!("Dataset CRS : {:?}", bathing_waters::Points::CRS.code);
+    println!("Dataset CRS : {:?}", points::Points::CRS.code);
 
     // Extract location & geometry for points & poly's
     let point_vec:Vec<(String, Point)> = points.iter().map(|p| {
