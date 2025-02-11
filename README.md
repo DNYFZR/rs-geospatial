@@ -1,18 +1,4 @@
-<h1 align="center"> Rust Geospatial </h1>
-
-Looking around the ecosystem & hoping to learn a thing or two for now...
-
-## Crates
-
-- geo : core structures - points, polygons & pals - really useful
-- proj4rs : crs transformations - way less overhead than the full proj crate
-- crs-definitions : self explanitory - works well with proj4rs to save having to code in all the crs strings, just call the def from here.
-- zip : handles zip archives
-- geozero : handles wkb / wkt transformations
-- reqwest : for getting geospatial files from the web
-- rusqlite : for handling gpkg formatted SQLite DBs
-
-## Notes
+<h2 align="center"> rs-geospatial </h2>
 
 Current functionality :
 
@@ -24,3 +10,13 @@ Current functionality :
   - using Haversine or Geodesic measurements
 
 - extract geopackage datasets from web hosted zip archives and process into memory for analysis
+
+### Crates
+
+- geo : core co-ord / point / polygon... structures
+- proj4rs : crs transformations - less overhead than the full proj crate
+- crs-definitions : works well with proj4rs & saves having to code in all the crs strings, just call the def from here.
+- zip : handles zip archives
+- geozero : handles wkb / wkt transformations
+- reqwest : for getting geospatial files from the web
+- rusqlite : for handling gpkg formatted SQLite DBs

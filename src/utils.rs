@@ -42,7 +42,7 @@ pub fn unzip(src:&str, dest:&str) {
 fn test_unzip() {
 use tempfile::TempDir;
 
-let src = "tmp/archive/SEPA_BATHING_WATER_POLYGONS_BNG_gpkg.zip";
+let src = "data/SEPA_BATHING_WATER_POLYGONS_BNG_gpkg.zip";
 
 let binding = TempDir::new().expect("Upstream error : tempfile crate failed to create test dir");
 let dest = binding.path().to_str().expect("failed to extract tmp test path");
