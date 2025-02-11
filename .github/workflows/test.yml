@@ -17,7 +17,7 @@ jobs:
     - name: Test
       run: |
         cargo install cargo2junit;
-         $CARGO_OPTIONS -- -Z unstable-options --format json | cargo2junit > results.xml;
+        cargo test -- -Z unstable-options --format json | cargo2junit > results.xml
     - name: Report
       uses: EnricoMi/publish-unit-test-result-action@v1
       with:
