@@ -1,7 +1,8 @@
 // Geospatial Distance Calculations
-use geo::{ Coord, Point, Polygon, Closest, ClosestPoint, };
+use geo::{ Coord, Point, Polygon, Closest, ClosestPoint };
 use geo::{ Distance, Geodesic, Haversine };
 
+#[derive(Debug, PartialEq)]
 pub enum DistanceMethod {
   Haversine,
   Geodesic,
@@ -55,8 +56,6 @@ pub fn polygon_distance(polygon: &Polygon, to_polygon:&Polygon, method:&Distance
 
     return closest.2;
 }
-
-// Spatial Distance 
 
 #[test]
 fn test_find_closest_point(){
