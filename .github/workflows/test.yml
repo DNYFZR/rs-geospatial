@@ -14,13 +14,6 @@ jobs:
     - uses: actions/checkout@v3
     - name: Build
       run: cargo build --verbose
-    - name: Test
-      run: |
-        cargo install cargo2junit;
-        cargo test -- -Z unstable-options --format json | cargo2junit > results.xml
-    - name: Report
-      uses: EnricoMi/publish-unit-test-result-action@v1
-      with:
-        check_name: Results
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        files: results.xml
+    - name: Run tests
+      run: cargo test --verbose --color always
+    
