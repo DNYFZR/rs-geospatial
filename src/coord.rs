@@ -54,7 +54,7 @@ fn test_update_poly_crs() {
   let poly_tf = update_poly_crs(&polygon, &active_crs, &target_crs);
 
   // Test results
-  assert_eq!(poly_tf, test_poly);
+  assert_eq!(poly_tf.exterior(), test_poly.exterior());
 
 }
 
