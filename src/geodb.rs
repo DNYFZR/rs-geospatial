@@ -1,39 +1,30 @@
-// Geodatabase handler module
+// Geodatabase handler
 use crate::utils::unzip;
 use std::fs::{ File, read_dir, create_dir, remove_file };
 use std::io::{ Cursor, copy };
 use reqwest::blocking::get;
 use rusqlite::Connection;
 use crs_definitions;
-use geo::{Geometry, MultiPolygon, Point};
+use geo::{Geometry, MultiPolygon, Point, Polygon};
 use geozero::wkb::{ FromWkb, WkbDialect };
 
 #[derive(Debug, PartialEq)]
-pub struct GeoRow {
-    pub object_id:i64,
+pub struct GeoData {
+    pub uuid:String,
     pub point: Option<Point>,
-    pub polygon: Option<MultiPolygon>,
-    pub bw_id:String,
-    pub description:String,
-    pub year:i64,
-    pub current:String,
-    pub class_id:String,
-    pub class_description:String,
-    pub bw_url:String,
-}
-
-#[derive(Debug, PartialEq)]
-pub struct GeoTable {
-    pub rows:Vec<GeoRow>,
+    pub polygon: Option<Polygon>,
+    pub multipolygon: Option<MultiPolygon>,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct GeoDB {
-    url:String,
-    zipfile:Option<String>,
-    db:String,
-    table:String,
-    crs:crs_definitions::Def,
+    pub url:String,
+    pub zipfile:Option<String>,
+    pub db:String,
+    pub table:String,
+    pub crs:crs_definitions::Def,
+    pub uuid_col_idx: i32,
+    pub geometry_col_idx:i32,
 }
 
 impl GeoDB {
@@ -44,6 +35,8 @@ impl GeoDB {
         db: "SEPA_BATHING_WATER_POINTS_BNG.gpkg".to_string(),
         table: "SEPA_BATHING_WATER_POINTS_BNG".to_string(),
         crs: crs_definitions::EPSG_27700,
+        geometry_col_idx: 1,
+        uuid_col_idx: 8,
       };      
     } 
 
@@ -54,6 +47,8 @@ impl GeoDB {
         db: "SEPA_BATHING_WATER_POLYGONS_BNG.gpkg".to_string(),
         table: "SEPA_BATHING_WATER_POLYGONS_BNG".to_string(),
         crs: crs_definitions::EPSG_27700,
+        geometry_col_idx: 1,
+        uuid_col_idx: 8,
       };      
     } 
 
@@ -81,7 +76,7 @@ impl GeoDB {
         }
     }
 
-    pub fn extract(&self) -> GeoTable {
+    pub fn extract(&self) -> Vec<GeoData> {
         let _ = &self.get_gdb();
         let mut data = vec![];
         
@@ -92,7 +87,7 @@ impl GeoDB {
             
             while let Some(row) = rows.next().expect("while error") {
                 // Extract geometry from bytes array
-                let shape_entry: Vec<u8> = row.get(1).expect("failed to get row");
+                let shape_entry: Vec<u8> = row.get(self.geometry_col_idx as usize).expect("failed to get row");
                 let mut bytes_cursor = Cursor::new(&shape_entry);
                 let geometry = FromWkb::from_wkb(
                         &mut bytes_cursor, 
@@ -101,31 +96,27 @@ impl GeoDB {
                 
                 match geometry {
                     Ok(Geometry::Point(mp)) => {
-                        data.push(GeoRow {
-                            object_id : row.get(0).expect("failed to get row"),
+                        data.push(GeoData {
+                            uuid: row.get(self.uuid_col_idx as usize).expect("failed to get uuid"),
                             point: Some(mp),
                             polygon: None,
-                            bw_id : row.get(2).expect("failed to get row"),
-                            description : row.get(3).expect("failed to get row"),
-                            year : row.get(4).expect("failed to get row"),
-                            current : row.get(5).expect("failed to get row"),
-                            class_id : String::from("null"),
-                            class_description : row.get(7).expect("failed to get row"),
-                            bw_url :  row.get(8).expect("failed to get row"),
+                            multipolygon: None,
+                        });
+                    }
+                    Ok(Geometry::Polygon(mp)) => {
+                        data.push(GeoData {
+                            uuid: row.get(self.uuid_col_idx as usize).expect("failed to get uuid"),
+                            point: None,
+                            polygon: Some(mp),
+                            multipolygon: None,
                         });
                     }
                     Ok(Geometry::MultiPolygon(mp)) => {
-                        data.push(GeoRow {
-                            object_id : row.get(0).expect("failed to get row"),
+                        data.push(GeoData {
+                            uuid: row.get(self.uuid_col_idx as usize).expect("failed to get uuid"),
                             point: None,
-                            polygon: Some(mp),
-                            bw_id : row.get(2).expect("failed to get row"),
-                            description : row.get(3).expect("failed to get row"),
-                            year : row.get(4).expect("failed to get row"),
-                            current : row.get(5).expect("failed to get row"),
-                            class_id : String::from("null"),
-                            class_description : row.get(7).expect("failed to get row"),
-                            bw_url :  row.get(8).expect("failed to get row"),
+                            polygon: None,
+                            multipolygon: Some(mp),
                         });
                     }
                     _ => ()
@@ -139,9 +130,8 @@ impl GeoDB {
             remove_file(&format!("tmp/{}", &self.zipfile.clone().unwrap())).expect("failed to remove zip archive from working dir");
         }
         
-        return GeoTable{rows: data};  
+        return data;  
     }
-
 
 }
 
@@ -153,6 +143,8 @@ fn test_example_points() {
         db: "SEPA_BATHING_WATER_POINTS_BNG.gpkg".to_string(),
         table: "SEPA_BATHING_WATER_POINTS_BNG".to_string(),
         crs: crs_definitions::EPSG_27700,
+        geometry_col_idx: 1,
+        uuid_col_idx: 8,
       };
 
     assert_eq!(test, GeoDB::example_points_db());
@@ -166,6 +158,8 @@ fn test_example_polygons() {
         db: "SEPA_BATHING_WATER_POLYGONS_BNG.gpkg".to_string(),
         table: "SEPA_BATHING_WATER_POLYGONS_BNG".to_string(),
         crs: crs_definitions::EPSG_27700,
+        geometry_col_idx: 1,
+        uuid_col_idx: 8,
       };
 
     assert_eq!(test, GeoDB::example_polygons_db());
@@ -175,15 +169,16 @@ fn test_example_polygons() {
 fn test_extract() {
     // All points dataset test
     let test = GeoDB::example_points_db().extract();
-    for row in test.rows {
+    for row in test {
         assert!(row.point.is_some());
-        assert!(row.polygon.is_none());
+        assert!(row.multipolygon.is_none());
     }
 
     // All polygon dataset test
     let test = GeoDB::example_polygons_db().extract();
-    for row in test.rows {
+    for row in test {
         assert!(row.point.is_none());
-        assert!(row.polygon.is_some());
+        assert!(row.multipolygon.is_some());
     }
 }
+
