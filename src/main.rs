@@ -1,26 +1,36 @@
 // Geospatial Modelling
 #![allow(dead_code, unused_imports, unused_variables)]
-
 mod coord;
 mod dist;
 mod utils;
 mod geodb;
 
 fn main() {
-  
-  let poly_db = geodb::GeoDB::example_polygons_db();
-  println!("{:#?}", poly_db);
+    let mut geofiles = std::collections::HashMap::new();
+    geofiles.insert("spa_sites",	"https://ogc.nature.scot/geoserver/protectedareas/wfs?request=GetFeature&service=WFS&version=1.1.0&typeName=protectedareas:spa&outputFormat=SHAPE-ZIP");
+    geofiles.insert("sssi_sites",	"https://ogc.nature.scot/geoserver/protectedareas/wfs?request=GetFeature&service=WFS&version=1.1.0&typeName=protectedareas:sssi&outputFormat=SHAPE-ZIP");
+    geofiles.insert("ramsar_sites",	"https://ogc.nature.scot/geoserver/protectedareas/wfs?request=GetFeature&service=WFS&version=1.1.0&typeName=protectedareas:ramsar&outputFormat=SHAPE-ZIP");
+    geofiles.insert("sac_sites",	"https://ogc.nature.scot/geoserver/protectedareas/wfs?request=GetFeature&service=WFS&version=1.1.0&typeName=protectedareas:sac&outputFormat=SHAPE-ZIP");
+    geofiles.insert("bathing_waters_areas",	"https://map.sepa.org.uk/atom/Data/SEPA_BATHING_WATER_POLYGONS_BNG_gpkg.zip");
+    geofiles.insert("bathing_waters_points",	"https://map.sepa.org.uk/atom/Data/SEPA_BATHING_WATER_POINTS_BNG_gpkg.zip");
+    geofiles.insert("river_class",	"http://map.sepa.org.uk/atom/Data/SEPA_RIVER_WATERBODY_CLASSIFICATIONS_BNG.gdb.zip");
+    geofiles.insert("coastal_class",	"https://map.sepa.org.uk/atom/Data/SEPA_COASTAL_WATERBODY_CLASSIFICATIONS_BNG_gpkg.zip");
+    geofiles.insert("eastury_class",	"https://map.sepa.org.uk/atom/Data/SEPA_ESTUARIES_WATERBODY_CLASSIFICATIONS_BNG_gpkg.zip");
+    geofiles.insert("loch_class",	"http://map.sepa.org.uk/atom/Data/SEPA_LOCH_WATERBODY_CLASSIFICATIONS_BNG_gpkg.zip");
+    geofiles.insert("shellfish_waters",	"https://map.sepa.org.uk/atom/Data/Shellfish_Water_Protected_Areas_BNG.zip");
 
-
-  let points_db = geodb::GeoDB::example_points_db();
-  let points_table = points_db.extract();
-  
-  println!("{:#?}", points_db);
-  println!();
-  println!("{:#?}", points_table.rows[0]);
-
-  println!();
-  println!("{:#?}", get_spatial()); 
+    let geo_db = geodb::GeoDB{
+        url: geofiles["bathing_waters_points"].to_string(),
+        zipfile: Some("SEPA_BATHING_WATER_POINTS_BNG_gpkg.zip".to_string()),
+        db:"SEPA_BATHING_WATER_POINTS_BNG.gpkg".to_string(),
+        table: "SEPA_BATHING_WATER_POINTS_BNG".to_string(),
+        crs: crs_definitions::EPSG_27700,
+        uuid_col_idx: 8, 
+        geometry_col_idx: 1,
+    };
+    
+    let geo_db_data = geo_db.extract();
+    println!("{:#?}", geo_db_data);
 }
 
 // spatial distance calcs... 
